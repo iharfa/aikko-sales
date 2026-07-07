@@ -49,6 +49,11 @@ export default function Sales() {
       <h1 className="mb-1 text-2xl font-bold">Sales</h1>
       <p className="mb-3 text-sm text-muted">
         {sales.length} sales · {fmt(sales.reduce((a, s) => a + s.total, 0))} total
+        {(() => {
+          const cash = sales.reduce((a, s) => a + (s.cash ?? (s.payment === "Cash" ? s.total : 0)), 0);
+          const transfer = sales.filter((s) => s.payment).reduce((a, s) => a + s.total, 0) - cash;
+          return <> — <b className="font-mono text-ink">{fmt(cash)}</b> cash · <b className="font-mono text-ink">{fmt(transfer)}</b> transfer</>;
+        })()}
       </p>
 
       {[...days.entries()].map(([day, list]) => (
