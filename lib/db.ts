@@ -1,6 +1,6 @@
 // Storage adapter: Neon Postgres when DATABASE_URL is set (shared across
 // devices), otherwise a local JSON file — zero-config dev/demo mode.
-import { neon } from "@neondatabase/serverless";
+import { neon, type NeonQueryFunction } from "@neondatabase/serverless";
 import fs from "fs";
 import path from "path";
 import { SEED_INVENTORY, SEED_SALES } from "./seed";
@@ -48,7 +48,7 @@ async function pg() {
   return sql;
 }
 
-async function seedSql(sql: ReturnType<typeof neon>) {
+async function seedSql(sql: NeonQueryFunction<false, false>) {
   await sql`INSERT INTO inventory (design, size, start, sold)
     SELECT design, size, start, sold FROM jsonb_to_recordset(${JSON.stringify(SEED_INVENTORY)}::jsonb)
     AS x(design text, size text, start int, sold int)`;
