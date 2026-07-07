@@ -42,17 +42,31 @@ async function pg() {
       id serial PRIMARY KEY, ts timestamptz, payment text, cash real,
       total real NOT NULL, items jsonb NOT NULL, note text)`;
     const [{ n }] = await sql`SELECT count(*)::int AS n FROM inventory`;
-    if (n === 0) {
-      await sql`INSERT INTO inventory (design, size, start, sold)
-        SELECT design, size, start, sold FROM jsonb_to_recordset(${JSON.stringify(SEED_INVENTORY)}::jsonb)
-        AS x(design text, size text, start int, sold int)`;
-      await sql`INSERT INTO sales (ts, payment, total, items, note)
-        SELECT null, null, total, items, note FROM jsonb_to_recordset(${JSON.stringify(SEED_SALES)}::jsonb)
-        AS x(total real, items jsonb, note text)`;
-    }
+    if (n === 0) await seedSql(sql);
     ensured = true;
   }
   return sql;
+}
+
+async function seedSql(sql: ReturnType<typeof neon>) {
+  await sql`INSERT INTO inventory (design, size, start, sold)
+    SELECT design, size, start, sold FROM jsonb_to_recordset(${JSON.stringify(SEED_INVENTORY)}::jsonb)
+    AS x(design text, size text, start int, sold int)`;
+  await sql`INSERT INTO sales (ts, payment, total, items, note)
+    SELECT null, null, total, items, note FROM jsonb_to_recordset(${JSON.stringify(SEED_SALES)}::jsonb)
+    AS x(total real, items jsonb, note text)`;
+}
+
+// Wipe everything and repopulate from lib/seed.ts.
+export async function resetDb(): Promise<void> {
+  if (!url()) {
+    if (fs.existsSync(FILE)) fs.rmSync(FILE);
+    fileDb();
+    return;
+  }
+  const sql = await pg();
+  await sql`TRUNCATE inventory, sales RESTART IDENTITY`;
+  await seedSql(sql);
 }
 
 // ---------- public API ----------
