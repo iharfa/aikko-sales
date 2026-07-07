@@ -49,12 +49,23 @@ export default function Sales() {
       <h1 className="mb-1 text-2xl font-bold">Sales</h1>
       <p className="mb-3 text-sm text-muted">
         {sales.length} sales · {fmt(sales.reduce((a, s) => a + s.total, 0))} total
-        {(() => {
-          const cash = sales.reduce((a, s) => a + (s.cash ?? (s.payment === "Cash" ? s.total : 0)), 0);
-          const transfer = sales.filter((s) => s.payment).reduce((a, s) => a + s.total, 0) - cash;
-          return <> — <b className="font-mono text-ink">{fmt(cash)}</b> cash · <b className="font-mono text-ink">{fmt(transfer)}</b> transfer</>;
-        })()}
       </p>
+      {(() => {
+        const cash = sales.reduce((a, s) => a + (s.cash ?? (s.payment === "Cash" ? s.total : 0)), 0);
+        const transfer = sales.filter((s) => s.payment).reduce((a, s) => a + s.total, 0) - cash;
+        return (
+          <div className="mb-3 grid grid-cols-2 gap-2">
+            <div className="rounded-card border border-line bg-surface p-3">
+              <span className="block text-xs text-muted">Cash</span>
+              <span className="font-mono text-lg font-bold">{fmt(cash)}</span>
+            </div>
+            <div className="rounded-card border border-line bg-surface p-3">
+              <span className="block text-xs text-muted">Transfer</span>
+              <span className="font-mono text-lg font-bold">{fmt(transfer)}</span>
+            </div>
+          </div>
+        );
+      })()}
 
       {[...days.entries()].map(([day, list]) => (
         <section key={day} className="mb-3">
