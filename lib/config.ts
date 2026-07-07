@@ -14,5 +14,8 @@ export const CURRENCY = "$"; // SGD at Creator Super Fest — change per event
 
 export const PAYMENTS = ["Cash", "Transfer", "Split"] as const;
 
+// Event costs (flights, accommodation, printing, …) — the break-even target.
+export const TOTAL_COST = 2158;
+
 export const fmt = (n: number) =>
   CURRENCY + (Number.isInteger(n) ? n : n.toFixed(2));

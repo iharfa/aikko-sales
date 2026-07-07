@@ -7,6 +7,7 @@ const TABS = [
   { href: "/inventory", label: "Stock", d: "M4 7l8-4 8 4v10l-8 4-8-4V7m8-4v18M4 7l8 4 8-4" },
   { href: "/sales", label: "Sales", d: "M5 3v18h14M9 8h6M9 12h6M9 16h4" },
   { href: "/stats", label: "Stats", d: "M4 20V10m6 10V4m6 16v-7m4 7H2" },
+  { href: "/breakeven", label: "Goal", d: "M21 12a9 9 0 11-18 0 9 9 0 0118 0M15 12a3 3 0 11-6 0 3 3 0 016 0" },
 ];
 
 export default function Nav() {
