@@ -27,9 +27,11 @@ With no config it stores data in `data/db.json` (single device / laptop demo).
 
 ## Real backend (multi-phone at the stall)
 
-1. Create a free Postgres DB at https://neon.tech
-2. Set `DATABASE_URL` (in `.env.local`, or in Vercel project settings)
-3. Deploy: `npx vercel`
+Without a database the deployed app is read-only (seed data only; saving a sale fails).
+
+Easiest on Vercel: project → **Storage** tab → **Create Database** → **Neon (Postgres)**,
+free tier, connect it to the project and redeploy. That sets `DATABASE_URL`/`POSTGRES_URL`
+automatically. (Or create a DB at https://neon.tech and set `DATABASE_URL` yourself.)
 
 Tables are created and seeded from the spreadsheet automatically on first request.
 On phones: open the URL → share → **Add to Home Screen** (installs as a PWA).

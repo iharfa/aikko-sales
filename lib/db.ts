@@ -6,7 +6,7 @@ import path from "path";
 import { SEED_INVENTORY, SEED_SALES } from "./seed";
 import type { InvRow, Sale, SaleItem } from "./types";
 
-const url = () => process.env.DATABASE_URL;
+const url = () => process.env.DATABASE_URL || process.env.POSTGRES_URL;
 
 // ---------- JSON file mode ----------
 type FileDb = { inventory: InvRow[]; sales: Sale[]; nextInv: number; nextSale: number };
@@ -20,8 +20,10 @@ function fileDb(): FileDb {
       nextInv: SEED_INVENTORY.length + 1,
       nextSale: SEED_SALES.length + 1,
     };
-    fs.mkdirSync(path.dirname(FILE), { recursive: true });
-    fs.writeFileSync(FILE, JSON.stringify(db));
+    try {
+      fs.mkdirSync(path.dirname(FILE), { recursive: true });
+      fs.writeFileSync(FILE, JSON.stringify(db));
+    } catch {} // read-only fs (e.g. Vercel without a DB): serve seed read-only
     return db;
   }
   return JSON.parse(fs.readFileSync(FILE, "utf8"));
