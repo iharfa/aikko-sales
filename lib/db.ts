@@ -75,6 +75,60 @@ export async function upsertItem(design: string, size: string, start: number): P
     ON CONFLICT (design, size) DO UPDATE SET start = ${start}`;
 }
 
+// Rename a design everywhere — all its sizes and all sales lines — so stats
+// and void-restock stay consistent. Returns an error string on conflict.
+export async function renameDesign(from: string, to: string): Promise<string | null> {
+  if (!url()) {
+    const db = fileDb();
+    const clash = db.inventory.some((r) => r.design === to && db.inventory.some((x) => x.design === from && x.size === r.size));
+    if (clash) return `“${to}” already has some of these sizes`;
+    for (const r of db.inventory) if (r.design === from) r.design = to;
+    for (const s of db.sales) for (const i of s.items) if (i.design === from) i.design = to;
+    save(db);
+    return null;
+  }
+  const sql = await pg();
+  const clash = await sql`SELECT 1 FROM inventory a JOIN inventory b ON a.size = b.size
+    WHERE a.design = ${from} AND b.design = ${to} LIMIT 1`;
+  if (clash.length) return `“${to}” already has some of these sizes`;
+  await sql`UPDATE inventory SET design = ${to} WHERE design = ${from}`;
+  await sql`UPDATE sales SET items = (
+      SELECT jsonb_agg(CASE WHEN e->>'design' = ${from} THEN jsonb_set(e, '{design}', to_jsonb(${to}::text)) ELSE e END)
+      FROM jsonb_array_elements(items) e)
+    WHERE EXISTS (SELECT 1 FROM jsonb_array_elements(items) e WHERE e->>'design' = ${from})`;
+  return null;
+}
+
+// Change one row's size (data-entry fix); sales lines follow.
+export async function changeSize(id: number, size: string): Promise<string | null> {
+  if (!url()) {
+    const db = fileDb();
+    const row = db.inventory.find((r) => r.id === id);
+    if (!row || row.size === size) return null;
+    if (db.inventory.some((r) => r.design === row.design && r.size === size))
+      return `${row.design} already has an ${size} row`;
+    const old = row.size;
+    row.size = size as InvRow["size"];
+    for (const s of db.sales) for (const i of s.items)
+      if (i.design === row.design && i.size === old) i.size = size as InvRow["size"];
+    save(db);
+    return null;
+  }
+  const sql = await pg();
+  const [row] = await sql`SELECT * FROM inventory WHERE id = ${id}`;
+  if (!row || row.size === size) return null;
+  const clash = await sql`SELECT 1 FROM inventory WHERE design = ${row.design} AND size = ${size}`;
+  if (clash.length) return `${row.design} already has an ${size} row`;
+  await sql`UPDATE inventory SET size = ${size} WHERE id = ${id}`;
+  await sql`UPDATE sales SET items = (
+      SELECT jsonb_agg(CASE WHEN e->>'design' = ${row.design} AND e->>'size' = ${row.size}
+        THEN jsonb_set(e, '{size}', to_jsonb(${size}::text)) ELSE e END)
+      FROM jsonb_array_elements(items) e)
+    WHERE EXISTS (SELECT 1 FROM jsonb_array_elements(items) e
+      WHERE e->>'design' = ${row.design} AND e->>'size' = ${row.size})`;
+  return null;
+}
+
 export async function getSales(): Promise<Sale[]> {
   if (!url()) return fileDb().sales.slice().reverse();
   const sql = await pg();
