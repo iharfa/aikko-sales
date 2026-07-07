@@ -1,0 +1,48 @@
+/* Hallmark · genre: modern-minimal · scope: app (POS) · theme: Cobalt · enrichment: none
+ * pre-emit critique: P4 H4 E4 S4 R5 V4
+ * audience: Aikko stall crew · use: record a sale <10s one-handed · tone: utilitarian */
+@import "tailwindcss";
+
+:root {
+  --paper: oklch(98.5% 0.004 240);
+  --surface: oklch(100% 0 0);
+  --ink: oklch(24% 0.02 255);
+  --muted: oklch(50% 0.02 250);
+  --line: oklch(89% 0.01 245);
+  --accent: oklch(51% 0.21 262);
+  --accent-soft: oklch(94% 0.03 262);
+  --good: oklch(52% 0.14 150);
+  --warn: oklch(56% 0.19 35);
+  --radius: 6px;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --font-display: var(--font-sg), system-ui, sans-serif;
+  --font-body: var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-jbm), ui-monospace, monospace;
+  --radius-card: var(--radius);
+}
+
+html, body { overflow-x: clip; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+h1, h2, h3 { font-family: var(--font-display); font-style: normal; letter-spacing: -0.02em; }
+
+button { touch-action: manipulation; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
